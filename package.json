@@ -1,5 +1,5 @@
 {
-  "name": "backend-boilerplate",
+  "name": "weCert",
   "version": "1.0.0",
   "description": "backend-portal REST  api Express and Prisma",
   "main": "src/index.ts",

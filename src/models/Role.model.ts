@@ -4,7 +4,7 @@ import Access from './Access.model';  // Import the Access model
 
 class Role extends Model {
   public role!: string;
-  // public roleDescription!: string;
+  public roleDescription!: string;
   public readonly id!: number;
 }
 
@@ -20,11 +20,11 @@ Role.init(
       allowNull: false,
       unique: true,
     },
-    // roleDescription: {
-    //   type: DataTypes.STRING(255),
-    //   allowNull: true,
-    //   field: 'role_description',
-    // }
+    roleDescription: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'role_description',
+    }
   },
   {
     sequelize, 

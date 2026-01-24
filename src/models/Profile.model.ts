@@ -4,9 +4,9 @@ import { sequelize } from "../config/sequelize";
 class Profile extends Model {
   public id!: number;
   public name!: string;
-  public readonly createdAt!:Date;
-  public readonly updatedAt!:Date;
-  public readonly deletedAt!:Date;
+  public isActive!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 Profile.init(
@@ -21,16 +21,15 @@ Profile.init(
       allowNull: false,
       unique: true,
     },
-    deletedAt:{
-      type:DataTypes.DATE,
-    }
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
   },
   {
     sequelize,
     tableName: "profiles",
-    freezeTableName:true,
     timestamps: true,
-    paranoid:true,   //enables softdelete
   }
 );
 

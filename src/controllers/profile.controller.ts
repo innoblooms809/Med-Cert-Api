@@ -1,19 +1,15 @@
 import httpStatus from "http-status";
-import Profile from "../models/Profile.model";
+// import Profile from "../models/Profile.model";
 import { IResponse } from "../types/response";
 import { Request, Response } from "express";
+import profileService from "../services/profile.service";
 
 
 // create Profile
 const createProfile = async (req: Request, res: Response) => {
     try {
-        const profile = await Profile.create(req.body);
-        return res.status(httpStatus.CREATED).send({
-            error: false,
-            statusCode: httpStatus.CREATED,
-            data: profile,
-            message: "profile created successfully.",
-        });
+        const result = await profileService.createProfile(req.body);
+        return res.status(result.statusCode).send(result);
     } catch (e: any) {
         console.error(e);
         return res.status(httpStatus.BAD_REQUEST).send({
@@ -24,16 +20,11 @@ const createProfile = async (req: Request, res: Response) => {
         });
     }
 }
-//get all profiles
-const getProfiles = async (req: Request, res: Response) => {
+// Admin: get all profiles (active + inactive)
+const getProfilesForAdmin = async (req: Request, res: Response) => {
     try {
-        const profiles = await Profile.findAll();//excludes softdeleted by default
-        return res.status(httpStatus.OK).send({
-            error: false,
-            statusCode: httpStatus.OK,
-            data: profiles,
-            message: "profiles fetched successfully.",
-        });
+        const result = await profileService.getProfilesForAdmin();
+        return res.status(result.statusCode).send(result);
     } catch (e: any) {
         console.error(e);
         return res.status(httpStatus.BAD_REQUEST).send({
@@ -44,25 +35,44 @@ const getProfiles = async (req: Request, res: Response) => {
         });
     }
 }
-//get single profile
+// frontend: get all profiles (active )
+const getActiveProfiles = async (req: Request, res: Response) => {
+    try {
+        const result = await profileService.getActiveProfiles();
+        return res.status(result.statusCode).send(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).send({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
+}
+//get single profile for frontend
 const getProfileById = async (req: Request, res: Response) => {
     try {
-        console.log("")
-        const profile = await Profile.findByPk(req.params.profileId);
-        if (!profile) {
-            return res.status(httpStatus.NOT_FOUND).send({
-                error: true,
-                statusCode: httpStatus.NOT_FOUND,
-                data: {},
-                message: "Profile not found",
-            });
-        }
-        return res.status(httpStatus.OK).send({
-            error: false,
-            statusCode: httpStatus.OK,
-            data: profile,
-            message: "profile fetched successfully.",
+        const { id } = req.params;
+        const result = await profileService.getProfileById(Number(id));
+        return res.status(result.statusCode).send(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).send({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
         });
+    }
+}
+
+//get single profile for Admin
+const getProfileByIdForAdmin = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await profileService.getProfileByIdForAdmin(Number(id));
+        return res.status(result.statusCode).send(result);
     } catch (e: any) {
         console.error(e);
         return res.status(httpStatus.BAD_REQUEST).send({
@@ -76,29 +86,10 @@ const getProfileById = async (req: Request, res: Response) => {
 //update Profile
 const updateProfile = async (req: Request, res: Response) => {
     try {
-        const { name } = req.body;
+        const { id } = req.params;
+        const result = await profileService.updateProfile(Number(id), req.body);
 
-        const profile = await Profile.findByPk(req.params.profileId);
-
-        if (!profile) {
-            return res.status(httpStatus.NOT_FOUND).json({
-                error: true,
-                statusCode:  httpStatus.NOT_FOUND,
-                data: {},
-                message: "Profile not found",
-            });
-        }
-
-        // update field
-        profile.name = name;
-        await profile.save();
-
-        return res.status(httpStatus.OK).json({
-            error: false,
-            statusCode: httpStatus.OK,
-            data: profile,
-            message: "Profile updated successfully",
-        });
+        return res.status(result.statusCode).send(result);
     } catch (e: any) {
         console.error(e);
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -113,22 +104,10 @@ const updateProfile = async (req: Request, res: Response) => {
 // soft delete profile
 const deleteProfile = async (req: Request, res: Response) => {
     try {
-        const profile = await Profile.findByPk(req.params.profileId);
-        if (!profile) {
-            return res.status(httpStatus.NOT_FOUND).send({
-                error: true,
-                statusCode: httpStatus.NOT_FOUND,
-                data: {},
-                message: "Profile not found",
-            });
-        }
-        await profile.destroy();
-        return res.status(httpStatus.OK).send({
-            error: false,
-            statusCode: httpStatus.OK,
-            data: profile,
-            message: "profile softdeleted successfully.",
-        });
+        const { id } = req.params;
+        const result = await profileService.deleteProfile(Number(id));
+
+        return res.status(result.statusCode).send(result);
     } catch (e: any) {
         console.error(e);
         return res.status(httpStatus.BAD_REQUEST).send({
@@ -139,10 +118,30 @@ const deleteProfile = async (req: Request, res: Response) => {
         });
     }
 }
+
+// restore Profile
+const restoreProfile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await profileService.restoreProfile(Number(id));
+    return res.status(result.statusCode).send(result);
+  } catch (e: any) {
+    return res.status(httpStatus.BAD_REQUEST).send({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: e.message,
+    });
+  }
+};
+
 export default {
     createProfile,
-    getProfiles,
+    getProfilesForAdmin,
+    getActiveProfiles,
     getProfileById,
+    getProfileByIdForAdmin,
     updateProfile,
     deleteProfile,
+    restoreProfile
 }

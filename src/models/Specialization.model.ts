@@ -3,10 +3,20 @@ import { DataTypes, Model } from "sequelize";
 import { sequelize } from "../config/sequelize";
 import Profile from "./Profile.model";
 
-class Specialization extends Model {
+interface SpecializationAttributes {
+  id?: number;
+  name: string;
+  profileId: number;
+  isActive?: boolean;
+}
+
+class Specialization extends Model<SpecializationAttributes> implements SpecializationAttributes {
   public id!: number;
   public name!: string;
   public profileId!: number;
+  public isActive!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 Specialization.init(
@@ -23,30 +33,30 @@ Specialization.init(
     profileId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-       references: {
-        model: "profiles", // must match the table name in DB
+      references: {
+        model: Profile,
         key: "id",
       },
-      onDelete: "CASCADE",// delete specializations if profile is deleted
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true, // active by default
     },
   },
   {
     sequelize,
     tableName: "specializations",
     timestamps: true,
-    freezeTableName:true,
-    paranoid: true, 
-     indexes: [
-      {
-        unique: true,
-        fields: ["name", "profileId"], // prevent duplicate specialization for same profile
-      },
-    ],
+    indexes: [
+  { unique: true, fields: ["name", "profileId", "isActive"] },
+  { fields: ["profileId"] },
+],
   }
 );
 
 // Relation
-Profile.hasMany(Specialization, { foreignKey: "profileId" });
-Specialization.belongsTo(Profile, { foreignKey: "profileId" });
+Profile.hasMany(Specialization, { foreignKey: "profileId",as: "specializations",onDelete: "RESTRICT",onUpdate: "CASCADE", });
+Specialization.belongsTo(Profile, { foreignKey: "profileId",as: "profile"});
 
 export default Specialization;

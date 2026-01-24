@@ -1,12 +1,36 @@
-// models/specialization.model.ts
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional} from "sequelize";
 import { sequelize } from "../config/sequelize";
 import Specialization from "./Specialization.model";
 
-class SubSpecialization extends Model {
+
+/**
+ * Attributes stored in DB
+ */
+export interface SubSpecializationAttributes {
+  id: number;
+  name: string;
+  specializationId: number;
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * Attributes required during creation
+ */
+export interface SubSpecializationCreationAttributes
+  extends Optional<SubSpecializationAttributes, "id" | "isActive"> {}
+class SubSpecialization extends Model<
+    SubSpecializationAttributes,
+    SubSpecializationCreationAttributes
+  >implements SubSpecializationAttributes {
   public id!: number;
   public name!: string;
   public specializationId!: number;
+  public isActive!: boolean;
+
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 SubSpecialization.init(
@@ -23,30 +47,35 @@ SubSpecialization.init(
     specializationId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-       references: {
-        model: "specializations", // must match the table name in DB
+      references: {
+        model: Specialization, // must match the table name in DB
         key: "id",
       },
-      onDelete: "CASCADE",// delete specializations if profile is deleted
     },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    }
   },
   {
     sequelize,
     tableName: "sub_specializations",
     timestamps: true,
-    freezeTableName:true,
-    paranoid:true,
-     indexes: [
+    indexes: [
       {
         unique: true,
-        fields: ["name", "specializationId"], // prevent duplicate specialization for same profile
+        fields: ["name", "specializationId"],
+      },
+      {
+        fields: ["specializationId"],
       },
     ],
+
   }
 );
 
 // Relation
-Specialization.hasMany(SubSpecialization, { foreignKey: "specializationId",as: "subSpecializations", });
+Specialization.hasMany(SubSpecialization, { foreignKey: "specializationId", as: "subSpecializations", onDelete: "RESTRICT", onUpdate: "CASCADE", });
 SubSpecialization.belongsTo(Specialization, { foreignKey: "specializationId", as: "specialization", });
 
 export default SubSpecialization;

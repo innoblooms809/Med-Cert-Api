@@ -1,143 +1,155 @@
 import httpStatus from "http-status";
-import Specialization from "../models/Specialization.model";
 import { Request, Response } from "express";
+import specializationService from "../services/specialization.service";
+
 
 // create Specialization
 const createSpecialization = async (req: Request, res: Response) => {
-  try {
-    const specialization = await Specialization.create(req.body);
-    return res.status(httpStatus.CREATED).send({
-      error: false,
-      statusCode: httpStatus.CREATED,
-      data: specialization,
-      message: "Specialization created successfully.",
-    });
-  } catch (e: any) {
-    console.error(e);
-    return res.status(httpStatus.BAD_REQUEST).send({
-      error: true,
-      statusCode: httpStatus.BAD_REQUEST,
-      data: {},
-      message: `Something went wrong: ${e.message}`,
-    });
-  }
+    try {
+        const result = await specializationService.createSpecialization(req.body);
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
+}
+// Admin: get all specializations (active + inactive)
+const getSpecializationsForAdmin = async (req: Request, res: Response) => {
+    try {
+        const result = await specializationService.getSpecializationsForAdmin();
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
+}
+// frontend: get all profiles (active )
+const getActiveSpecializations = async (req: Request, res: Response) => {
+    try {
+        const profileId = Number(req.query.profileId); // or from req.user if auth
+        if (!profileId) {
+            return res.status(httpStatus.BAD_REQUEST).json({
+                error: true,
+                statusCode: httpStatus.BAD_REQUEST,
+                data: {},
+                message: "profileId is required",
+            });
+        }
+        const result = await specializationService.getActiveSpecializations(profileId);
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
+}
+//get single specialization
+const getSpecializationById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await specializationService.getSpecializationById(Number(id));
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
+}
+// get single Specialization for Admin
+const getSpecializationByIdForAdmin = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await specializationService.getSpecializationByIdForAdmin(Number(id));
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
+};
+
+//update Specialization
+const updateSpecialization = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await specializationService.updateSpecialization(Number(id), req.body);
+
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
+};
+
+// soft delete specialization
+const deleteSpecialization = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await specializationService.deleteSpecialization(Number(id));
+
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
+    }
 }
 
-// GET ALL Specialization
-const getSpecializations = async (req: Request, res: Response) => {
-  try {
-    const specialization = await Specialization.findAll();
-    return res.status(httpStatus.OK).send({
-      error: false,
-      statusCode: httpStatus.OK,
-      data: specialization,
-      message: "Specializations fetched successfully",
-    });
-  } catch (error: any) {
-    return res.status(httpStatus.BAD_REQUEST).send({
-      error: true,
-      statusCode: httpStatus.BAD_REQUEST,
-      data: {},
-      message: error.message,
-    });
-  }
-};
-// GET Specialization BY ID
-const getSpecializationById = async (req: Request, res: Response) => {
-  try {
-    const specialization = await Specialization.findByPk(req.params.specializationId);
-    if (!specialization) {
-      return res.status(httpStatus.NOT_FOUND).send({
-        error: true,
-        statusCode: httpStatus.NOT_FOUND,
-        data: {},
-        message: "Specialization not found",
-      });
+// restore a deleted specialization
+const restoreSpecialization = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await specializationService.restoreSpecialization(Number(id));
+        return res.status(result.statusCode).json(result);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(httpStatus.BAD_REQUEST).json({
+            error: true,
+            statusCode: httpStatus.BAD_REQUEST,
+            data: {},
+            message: `Something went wrong: ${e.message}`,
+        });
     }
-    return res.status(httpStatus.OK).send({
-      error: false,
-      statusCode: httpStatus.OK,
-      specialization,
-      message: "Specialization fetched",
-    });
-  }
-  catch (e: any) {
-    console.error(e);
-    return res.status(httpStatus.BAD_REQUEST).send({
-      error: true,
-      statusCode: httpStatus.BAD_REQUEST,
-      data: {},
-      message: `Something went wrong: ${e.message}`,
-    });
-  }
-};
-// UPDATE
-const updateSpecialization = async (req: Request, res: Response) => {
-  try {
-    const specialization = await Specialization.findByPk(req.params.specializationId);
-    if (!specialization) {
-      return res.status(httpStatus.NOT_FOUND).send({
-        error: true,
-        statusCode: httpStatus.NOT_FOUND,
-        data: {},
-        message: "Specialization not found",
-      });
-    }
-
-    await specialization.update(req.body);
-
-    return res.status(httpStatus.OK).send({
-      error: false,
-      statusCode: httpStatus.OK,
-      data: specialization,
-      message: "Specialization updated",
-    });
-  } catch (e: any) {
-    console.error(e);
-    return res.status(httpStatus.BAD_REQUEST).send({
-      error: true,
-      statusCode: httpStatus.BAD_REQUEST,
-      data: {},
-      message: `Something went wrong: ${e.message}`,
-    });
-  }
 };
 
-// SOFT DELETE
-const deleteSpecialization = async (req:Request,res:Response) => {
-  try {
-    const specialization = await Specialization.findByPk(req.params.specializationId);
-    if (!specialization) {
-      return res.status(httpStatus.NOT_FOUND).send({
-        error: true,
-        statusCode: httpStatus.NOT_FOUND,
-        data: {},
-        message: "Specialization not found",
-      });
-    }
-
-    await specialization.destroy(); // soft delete
-
-    return res.status(httpStatus.OK).send({
-      error: false,
-      statusCode: httpStatus.OK,
-      data: {},
-      message: "Specialization deleted (soft)",
-    });
-  } catch (e: any) {
-    console.error(e);
-    return res.status(httpStatus.BAD_REQUEST).send({
-      error: true,
-      statusCode: httpStatus.BAD_REQUEST,
-      data: {},
-      message: `Something went wrong: ${e.message}`,
-    });
-  }
-};
 export default {
-  createSpecialization,
-  getSpecializations,
-  getSpecializationById,
-  updateSpecialization,
-  deleteSpecialization,
+    createSpecialization,
+    getSpecializationsForAdmin,
+    getActiveSpecializations,
+    getSpecializationById,
+    getSpecializationByIdForAdmin,
+    updateSpecialization,
+    deleteSpecialization,
+    restoreSpecialization
 }

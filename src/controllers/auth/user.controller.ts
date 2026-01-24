@@ -2,13 +2,13 @@ import httpStatus from "http-status";
 // import Master from "../../";
 import { Request, response, Response } from "express";
 import { userServices } from "../../services";
-import tokenService from "../../services/token.service";
 import { error } from "console";
 import svgCaptcha from "svg-captcha";
 import { sendEmailToNewUser } from "../../utils/mailHelper";
 import Specialization from "../../models/Specialization.model";
 import Profile from "../../models/Profile.model";
 import SubSpecialization from "../../models/SubSpecialization.model";
+import tokenService from "../../services/token.service";
 interface IGetUserInfoRequest extends Request {
   session: any 
 }

@@ -8,8 +8,6 @@ import { AuthTokensResponse } from "../types/response";
 import { TOKEN_TYPE } from "../utils/Constants";
 // import clientPromise from "../db";
 // import candidateService from './candidate/candidate.service';
-import Tokens from "../models/token.model";
-import Token from "../models/token.model";
 
 /**
  * Generate token
@@ -164,13 +162,8 @@ const generateUserToken = (
  * @param {User} user
  * @returns {Promise<AuthTokensResponse>}
  */
-const generateUserAuthTokens = async (
-  user: any
-): Promise<AuthTokensResponse> => {
-  const accessTokenExpires = moment().add(
-    config.jwt.accessExpirationMinutes,
-    "minutes"
-  );
+const generateUserAuthTokens = async (user: any): Promise<AuthTokensResponse> => {
+  const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes,"minutes");
   const accessToken = generateUserToken(
     user,
     accessTokenExpires,

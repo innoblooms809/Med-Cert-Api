@@ -1,144 +1,212 @@
 import httpStatus from "http-status";
-import Specialization from "../models/Specialization.model";
 import { Request, Response } from "express";
-import SubSpecialization from "../models/SubSpecialization.model";
+import subSpecializationService from "../services/subSpecialization.service";
 
-// create Sub_Specialization
+/**
+ * Create Sub-Specialization
+ */
 const createSubSpecialization = async (req: Request, res: Response) => {
-    try {
-        const subSpecialization = await SubSpecialization.create(req.body);
-        return res.status(httpStatus.CREATED).send({
-            error: false,
-            statusCode: httpStatus.CREATED,
-            data: subSpecialization,
-            message: "subSpecialization created successfully.",
-        });
-    } catch (e: any) {
-        console.error(e);
-        return res.status(httpStatus.BAD_REQUEST).send({
-            error: true,
-            statusCode: httpStatus.BAD_REQUEST,
-            data: {},
-            message: `Something went wrong: ${e.message}`,
-        });
-    }
-}
-
-// GET ALL Sub_Specialization
-const getSubSpecializations = async (req: Request, res: Response) => {
-    try {
-        const subSpecialization = await SubSpecialization.findAll();
-        return res.status(httpStatus.OK).send({
-            error: false,
-            statusCode: httpStatus.OK,
-            data: subSpecialization,
-            message: "subSpecializations fetched successfully",
-        });
-    } catch (error: any) {
-        return res.status(httpStatus.BAD_REQUEST).send({
-            error: true,
-            statusCode: httpStatus.BAD_REQUEST,
-            data: {},
-            message: error.message,
-        });
-    }
+  try {
+    const result = await subSpecializationService.createSubSpecialization(
+      req.body
+    );
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
 };
-// GET getSubSpecialization BY ID
+
+/**
+ * Admin: Get all sub-specializations (active + inactive)
+ */
+const getSubSpecializationsForAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const result =
+      await subSpecializationService.getSubSpecializationsForAdmin();
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
+};
+
+/**
+ * Frontend: Get active sub-specializations by specializationId
+ * ?specializationId=1
+ */
+const getActiveSubSpecializations = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const specializationId = Number(req.query.specializationId);
+
+    if (!specializationId) {
+      return res.status(httpStatus.BAD_REQUEST).json({
+        error: true,
+        statusCode: httpStatus.BAD_REQUEST,
+        data: {},
+        message: "specializationId is required",
+      });
+    }
+
+    const result =
+      await subSpecializationService.getActiveSubSpecializations(
+        specializationId
+      );
+
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
+};
+
+/**
+ * Frontend: Get single active sub-specialization
+ */
 const getSubSpecializationById = async (req: Request, res: Response) => {
-    try {
-        const subSpecialization = await SubSpecialization.findByPk(req.params.subSpecializationId);
-        if (!subSpecialization) {
-            return res.status(httpStatus.NOT_FOUND).send({
-                error: true,
-                statusCode: httpStatus.NOT_FOUND,
-                data: {},
-                message: "subSpecialization not found",
-            });
-        }
-        return res.status(httpStatus.OK).send({
-            error: false,
-            statusCode: httpStatus.OK,
-            subSpecialization,
-            message: "subSpecialization fetched",
-        });
-    }
-    catch (e: any) {
-        console.error(e);
-        return res.status(httpStatus.BAD_REQUEST).send({
-            error: true,
-            statusCode: httpStatus.BAD_REQUEST,
-            data: {},
-            message: `Something went wrong: ${e.message}`,
-        });
-    }
+  try {
+    const { id } = req.params;
+
+    const result =
+      await subSpecializationService.getSubSpecializationById(Number(id));
+
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
 };
-// UPDATE Sub_Specialization
+
+/**
+ * Admin: Get sub-specialization by ID
+ */
+const getSubSpecializationByIdForAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+
+    const result =
+      await subSpecializationService.getSubSpecializationByIdForAdmin(
+        Number(id)
+      );
+
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
+};
+
+/**
+ * Update Sub-Specialization
+ */
 const updateSubSpecialization = async (req: Request, res: Response) => {
-    try {
-        const subSpecialization = await SubSpecialization.findByPk(req.params.subSpecializationId);
-        if (!subSpecialization) {
-            return res.status(httpStatus.NOT_FOUND).send({
-                error: true,
-                statusCode: httpStatus.NOT_FOUND,
-                data: {},
-                message: "subSpecialization not found",
-            });
-        }
+  try {
+    console.log("CONTROLLER BODY:", req.body);
+    const { id } = req.params;
 
-        await subSpecialization.update(req.body);
+    const result =
+      await subSpecializationService.updateSubSpecialization(
+        Number(id),
+        req.body
+      );
 
-        return res.status(httpStatus.OK).send({
-            error: false,
-            statusCode: httpStatus.OK,
-            data: subSpecialization,
-            message: "subSpecialization updated",
-        });
-    } catch (e: any) {
-        console.error(e);
-        return res.status(httpStatus.BAD_REQUEST).send({
-            error: true,
-            statusCode: httpStatus.BAD_REQUEST,
-            data: {},
-            message: `Something went wrong: ${e.message}`,
-        });
-    }
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
 };
 
-// SOFT DELETE Sub_Specialization
+/**
+ * Soft delete Sub-Specialization
+ */
 const deleteSubSpecialization = async (req: Request, res: Response) => {
-    try {
-        const subSpecialization = await SubSpecialization.findByPk(req.params.subSpecializationId);
-        if (!subSpecialization) {
-            return res.status(httpStatus.NOT_FOUND).send({
-                error: true,
-                statusCode: httpStatus.NOT_FOUND,
-                data: {},
-                message: "subSpecialization not found",
-            });
-        }
+  try {
+    const { id } = req.params;
 
-        await subSpecialization.destroy(); // soft delete
+    const result =
+      await subSpecializationService.deleteSubSpecialization(Number(id));
 
-        return res.status(httpStatus.OK).send({
-            error: false,
-            statusCode: httpStatus.OK,
-            data: {},
-            message: "subSpecialization deleted (soft)",
-        });
-    } catch (e: any) {
-        console.error(e);
-        return res.status(httpStatus.BAD_REQUEST).send({
-            error: true,
-            statusCode: httpStatus.BAD_REQUEST,
-            data: {},
-            message: `Something went wrong: ${e.message}`,
-        });
-    }
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
 };
+
+/**
+ * Restore Sub-Specialization
+ */
+const restoreSubSpecialization = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const result =
+      await subSpecializationService.restoreSubSpecialization(Number(id));
+
+    return res.status(result.statusCode).json(result);
+  } catch (e: any) {
+    console.error(e);
+    return res.status(httpStatus.BAD_REQUEST).json({
+      error: true,
+      statusCode: httpStatus.BAD_REQUEST,
+      data: {},
+      message: `Something went wrong: ${e.message}`,
+    });
+  }
+};
+
 export default {
-    createSubSpecialization,
-    getSubSpecializations,
-    getSubSpecializationById,
-    updateSubSpecialization,
-    deleteSubSpecialization,
-}
+  createSubSpecialization,
+  getSubSpecializationsForAdmin,
+  getActiveSubSpecializations,
+  getSubSpecializationById,
+  getSubSpecializationByIdForAdmin,
+  updateSubSpecialization,
+  deleteSubSpecialization,
+  restoreSubSpecialization,
+};
